@@ -7,7 +7,7 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 
 # Read the airline data into pandas dataframe
-spacex_df = pd.read_csv("spacex_launch_dash.csv")
+spacex_df = pd.read_csv("./OneDrive/Documents/pj/spacex_launch_dash.csv")
 max_payload = spacex_df['Payload Mass (kg)'].max()
 min_payload = spacex_df['Payload Mass (kg)'].min()
 site_list = list(spacex_df['Launch Site'].unique())
@@ -43,7 +43,7 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
                                                 step=1000,
                                                 marks={0:'0',2500:'2500',5000:'5000',7500:'7500',10000:'10000'},
                                                 value=[min_payload,max_payload]),
-
+                                html.Br(),
                                 # TASK 4: Add a scatter chart to show the correlation between payload and launch success
                                 html.Div(dcc.Graph(id='success-payload-scatter-chart')),
                                 ])
@@ -64,13 +64,15 @@ def get_graph1(sitedropdown):
 # TASK 4:
 # Add a callback function for `site-dropdown` and `payload-slider` as inputs, `success-payload-scatter-chart` as output
 @app.callback( Output(component_id='success-payload-scatter-chart', component_property='figure'),
-               Input(component_id='site-dropdown', component_property='value'),
+               [Input(component_id='site-dropdown', component_property='value'),
+                Input(component_id='payload-slider', component_property='value')],
                )
-def get_graph2(sitedropdown):
+def get_graph2(sitedropdown,rangepay):
+    spacex_dfr = spacex_df[(spacex_df['Payload Mass (kg)']>=rangepay[0])&(spacex_df['Payload Mass (kg)']<=rangepay[1])]
     if sitedropdown=='All Sites':
-        fig = px.scatter(spacex_df, x="Payload Mass (kg)", y="class", color="Booster Version Category") 
+        fig = px.scatter(spacex_dfr, x="Payload Mass (kg)", y="class", color="Booster Version Category") 
     else:
-        scatter_df = spacex_df[spacex_df['Launch Site']==sitedropdown]
+        scatter_df = spacex_dfr[spacex_dfr['Launch Site']==sitedropdown]
         fig = px.scatter(scatter_df, x="Payload Mass (kg)", y="class", color="Booster Version Category") 
     return fig
 # Run the app
